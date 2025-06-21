@@ -31,8 +31,9 @@ jobs:
       
       - name: Checkout repository
         uses: actions/checkout@v3
-      
-      - run: echo "C:\fpc322\bin\i386-win32" >> $env:GITHUB_PATH
+
+      - name: Update PATH env
+        run: echo "C:\fpc322\bin\i386-win32" >> $env:GITHUB_PATH
         shell: powershell
       
       - name: Build FPC x64 (build compiler)
@@ -54,30 +55,31 @@ jobs:
           make crossinstall OS_TARGET=win32 CPU_TARGET=i386 INSTALL_PREFIX=C:\fpc PP=C:\fpc\bin\x86_64-win64\ppcx64.exe OPT="-dFPC_SOFT_FPUX80"
         shell: cmd
 
-      - run: Remove-Item -Path 'C:\fpc\bin\i386-win32' -Recurse -Force
+      - name: Cleanup
+        run: Remove-Item -Path 'C:\fpc\bin\i386-win32' -Recurse -Force
         shell: powershell
       
-      - name: Prepare artifact
-        run: powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'fpc-unleashed.zip'"
+      - name: Prepare artifacts
+        run: |
+          powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'fpc-unleashed.zip'"
+          copy C:\fpc\bin\x86_64-win64\ppcx64.exe .
+          copy C:\fpc\bin\x86_64-win64\ppcross386.exe .
         shell: cmd
       
-      - name: Upload artifacts
+      - name: Upload fpc-unleashed.zip
         uses: actions/upload-artifact@v4
         with:
           name: fpc-unleashed.zip
           path: fpc-unleashed.zip
 
-      - run: |
-          copy C:\fpc\bin\x86_64-win64\ppcx64.exe .
-          copy C:\fpc\bin\x86_64-win64\ppcross386.exe .
-        shell: cmd
-          
-      - uses: actions/upload-artifact@v4
+      - name: Upload ppcx64.exe
+        uses: actions/upload-artifact@v4
         with:
           name: ppcx64.exe
           path: ppcx64.exe
-      
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload ppcross386.exe
+        uses: actions/upload-artifact@v4
         with:
           name: ppcross386.exe
           path: ppcross386.exe
