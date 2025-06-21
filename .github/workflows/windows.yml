@@ -28,21 +28,27 @@ jobs:
       - name: Install bootstrap FPC compiler
         run: fpc-win32.exe /VERYSILENT /DIR="C:\fpc322"
         shell: cmd
-      
-      - name: Add bootstrap FPC to PATH
-        run: echo "C:\fpc322\bin\i386-win32" >> $env:GITHUB_PATH
-        shell: powershell
+
+  checkout:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
   
   build:
-    needs: setup
+    needs:
+      - setup
+      - checkout
+    
     runs-on: windows-latest
     
     env:
       ARTIFACT: fpc-unleashed.zip
       
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - run: echo "C:\fpc322\bin\i386-win32" >> $env:GITHUB_PATH
+        shell: powershell
       
       - name: Build FPC x64 (build compiler)
         run: |
