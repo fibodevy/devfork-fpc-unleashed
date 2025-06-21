@@ -35,6 +35,7 @@ jobs:
           else
             echo "No 'nightly' tag found - will build"
             echo "should_build=true" >> $GITHUB_OUTPUT
+          fi
 
   build:
     runs-on: windows-latest
