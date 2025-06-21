@@ -4,8 +4,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  build:
     runs-on: windows-latest
+
+    env:
+      ARTIFACT: fpc-unleashed.zip
     
     steps:
       - name: Download bootstrap FPC 3.2.2
@@ -28,25 +31,10 @@ jobs:
       - name: Install bootstrap FPC compiler
         run: fpc-win32.exe /VERYSILENT /DIR="C:\fpc322"
         shell: cmd
-
-  checkout:
-    runs-on: windows-latest
-    
-    steps:
+      
       - name: Checkout repository
         uses: actions/checkout@v3
-  
-  build:
-    needs:
-      - setup
-      - checkout
-    
-    runs-on: windows-latest
-    
-    env:
-      ARTIFACT: fpc-unleashed.zip
       
-    steps:
       - run: echo "C:\fpc322\bin\i386-win32" >> $env:GITHUB_PATH
         shell: powershell
       
