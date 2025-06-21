@@ -3,7 +3,7 @@ name: Windows
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 0 * * *'
 
 jobs:
   check-for-changes:
@@ -166,6 +166,6 @@ jobs:
     needs: check-for-changes
     if: needs.check-for-changes.outputs.should_build == 'false'
     steps:
-      - name: skip build
+      - name: Skip build
         run: echo "No new commits since last release. Skipping."
     
