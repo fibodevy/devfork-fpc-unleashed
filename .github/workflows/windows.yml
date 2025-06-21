@@ -6,6 +6,10 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+
+    strategy:
+      matrix:
+        artifacts: [fpc-unleashed.zip, ppcx64.exe, ppcross386.exe]
     
     steps:
       - name: Download bootstrap FPC 3.2.2
@@ -65,24 +69,12 @@ jobs:
           copy C:\fpc\bin\x86_64-win64\ppcx64.exe .
           copy C:\fpc\bin\x86_64-win64\ppcross386.exe .
         shell: cmd
-      
-      - name: Upload fpc-unleashed.zip
+        
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: fpc-unleashed.zip
-          path: fpc-unleashed.zip
-
-      - name: Upload ppcx64.exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: ppcx64.exe
-          path: ppcx64.exe
-
-      - name: Upload ppcross386.exe
-        uses: actions/upload-artifact@v4
-        with:
-          name: ppcross386.exe
-          path: ppcross386.exe
+          name: ${{ matrix.artifacts }}
+          path: ${{ matrix.artifacts }}
       
       - name: Prepare release
         run: |
@@ -108,7 +100,7 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: fpc-unleashed.zip ppcx64.exe pcross386.exe
+          artifacts: ${{ matrix.artifacts }}
           tag: ${{ env.TAG }}
           name: ${{ env.NAME }}
           body: ${{ env.BODY }}
