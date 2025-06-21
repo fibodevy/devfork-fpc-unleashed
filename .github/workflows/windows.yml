@@ -11,10 +11,13 @@ jobs:
     outputs:
       should_build: ${{ steps.check.outputs.should_build }}
     steps:
-      - name: Checkout
+      - name: Checkout HEAD only
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+
+      - name: Fetch 'nightly' tag only
+        run: git fetch origin refs/tags/nightly:refs/tags/nightly
 
       - name: Check for changes since nightly
         id: check
@@ -24,7 +27,7 @@ jobs:
             head_commit=$(git rev-parse HEAD)
             echo "Nightly tag commit: $nightly_commit"
             echo "HEAD commit: $head_commit"
-      
+
             if [ "$nightly_commit" = "$head_commit" ]; then
               echo "No new commits since nightly release"
               echo "should_build=false" >> $GITHUB_OUTPUT
