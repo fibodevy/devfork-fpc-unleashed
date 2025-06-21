@@ -6,9 +6,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
-    env:
-      ARTIFACT: fpc-unleashed.zip
     
     steps:
       - name: Download bootstrap FPC 3.2.2
@@ -56,17 +53,34 @@ jobs:
         run: |
           make crossinstall OS_TARGET=win32 CPU_TARGET=i386 INSTALL_PREFIX=C:\fpc PP=C:\fpc\bin\x86_64-win64\ppcx64.exe OPT="-dFPC_SOFT_FPUX80"
         shell: cmd
+
+      - run: Remove-Item -Path 'C:\fpc\bin\i386-win32' -Recurse -Force
+        shell: powershell
       
       - name: Prepare artifact
-        run: |
-          powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath '${{ env.ARTIFACT }}'"
+        run: powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'fpc-unleashed.zip'"
         shell: cmd
       
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ARTIFACT }}
-          path: ${{ env.ARTIFACT }}
+          name: fpc-unleashed.zip
+          path: fpc-unleashed.zip
+
+      - run: |
+          copy C:\fpc\bin\x86_64-win64\ppcx64.exe .
+          copy C:\fpc\bin\x86_64-win64\ppcross386.exe .
+        shell: cmd
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ppcx64.exe
+          path: ppcx64.exe
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ppcross386.exe
+          path: ppcross386.exe
       
       - name: Prepare release
         run: |
@@ -92,7 +106,7 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: ${{ env.ARTIFACT }}
+          artifacts: fpc-unleashed.zip ppcx64.exe pcross386.exe
           tag: ${{ env.TAG }}
           name: ${{ env.NAME }}
           body: ${{ env.BODY }}
