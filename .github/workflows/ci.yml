@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-and-dispatch:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Checkout HEAD only
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Fetch nightly tag
+        run: git fetch origin refs/tags/nightly:refs/tags/nightly
+
+      - name: Check commit difference
+        id: check
+        run: |
+          if git rev-parse nightly >/dev/null 2>&1; then
+            NIGHTLY=$(git rev-list -n 1 nightly)
+            HEAD=$(git rev-parse HEAD)
+            if [ "$NIGHTLY" != "$HEAD" ]; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+            else
+              echo "should_build=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "should_build=true" >> $GITHUB_OUTPUT
+
+  dispatch:
+    needs: check-and-dispatch
+    if: needs.check-and-dispatch.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch Windows
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: windows.yml
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Dispatch Linux
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: linux.yml
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
