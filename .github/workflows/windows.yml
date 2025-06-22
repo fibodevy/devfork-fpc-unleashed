@@ -98,28 +98,28 @@ jobs:
     
     - name: Package artifacts
       run: |
-        powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'fpc-windows.zip'"
-        copy C:\fpc\bin\x86_64-win64\ppcx64.exe .
-        copy C:\fpc\bin\x86_64-win64\ppcross386.exe .
+        powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'windows-bundle.zip'"
+        powershell -Command "Compress-Archive -Path 'C:\fpc\bin\x86_64-win64\ppcx64.exe' -DestinationPath 'windows-ppcx64.zip'"
+        powershell -Command "Compress-Archive -Path 'C:\fpc\bin\x86_64-win64\ppcross386.exe' -DestinationPath 'windows-ppcross386.zip'"
       shell: cmd
       
-    - name: Upload fpc-windows.zip
+    - name: Upload windows-bundle.zip
       uses: actions/upload-artifact@v4
       with:
-        name: fpc-windows.zip
-        path: fpc-windows.zip
+        name: windows-bundle.zip
+        path: windows-bundle.zip
 
-    - name: Upload ppcx64.exe
+    - name: Upload windows-ppcx64.zip
       uses: actions/upload-artifact@v4
       with:
-        name: ppcx64.exe
-        path: ppcx64.exe
+        name: windows-ppcx64.zip
+        path: windows-ppcx64.zip
 
-    - name: Upload ppcross386.exe
+    - name: Upload windows-ppcross386.zip
       uses: actions/upload-artifact@v4
       with:
-        name: ppcross386.exe
-        path: ppcross386.exe
+        name: windows-ppcross386.zip
+        path: windows-ppcross386.zip
     
     - name: Prepare release
       run: |
@@ -134,16 +134,16 @@ jobs:
         "Build time: $ts" | Out-File -Append release-body.txt -Encoding UTF8
         "" | Out-File -Append release-body.txt -Encoding UTF8
         "Windows:" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Compiler (primary): ppcx64.exe (x86_64-win64)" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Cross-compiler: ppcross386.exe (i386-win32)" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Bundle (fpc-windows.zip) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Compiler (primary): windows-ppcx64.zip (x86_64-win64)" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Cross-compiler: windows-ppcross386.zip (i386-win32)" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Bundle (windows-bundle.zip) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
         "  - x86_64-win64" | Out-File -Append release-body.txt -Encoding UTF8
         "  - i386-win32" | Out-File -Append release-body.txt -Encoding UTF8
         "" | Out-File -Append release-body.txt -Encoding UTF8
         "Linux:" | Out-File -Append release-body.txt -Encoding UTF8
         "- Compiler (primary): linux-ppcx64.zip (x86_64-linux)" | Out-File -Append release-body.txt -Encoding UTF8
         "- Cross-compiler: linux-ppcross386.zip (i386-linux)" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Bundle (fpc-linux.zip) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Bundle (linux-bundle.zip) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
         "  - x86_64-linux" | Out-File -Append release-body.txt -Encoding UTF8
         "  - i386-linux" | Out-File -Append release-body.txt -Encoding UTF8
         "" | Out-File -Append release-body.txt -Encoding UTF8
@@ -160,7 +160,7 @@ jobs:
     - name: Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: fpc-windows.zip,ppcx64.exe,ppcross386.exe
+        artifacts: windows-bundle.zip,windows-ppcx64.zip,windows-ppcross386.zip
         tag: ${{ env.TAG }}
         name: ${{ env.NAME }}
         bodyFile: release-body.txt
