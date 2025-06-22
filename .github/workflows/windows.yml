@@ -172,6 +172,6 @@ jobs:
     needs: check-for-changes
     if: needs.check-for-changes.outputs.should_build == 'false'
     steps:
-      - name: Skip build
-        run: echo "No new commits since last release. Skipping."
+    - name: Skip build
+      run: echo "No new commits since last release. Skipping."
     
