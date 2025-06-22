@@ -119,19 +119,16 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y make curl gcc g++ libx11-dev
-
-      - name: Download bootstrap FPC 3.2.2
+      - name: Install dependencies for RPM
         run: |
-          curl -L -o fpc.tar https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
-          mkdir fpc-boot
-          tar -xf fpc.tar -C fpc-boot --strip-components=1
-
-      - name: Install bootstrap compiler
-        run: |
-          cd fpc-boot
-          sudo make install PREFIX=/usr
+          sudo apt-get update
+          sudo apt-get install -y alien rpm2cpio
+      
+      - name: Download FPC RPM
+        run: curl -LO https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2-1.x86_64.rpm
+      
+      - name: Convert and install RPM via alien
+        run: sudo alien -i fpc-3.2.2-1.x86_64.rpm
 
       - name: Checkout source
         uses: actions/checkout@v3
