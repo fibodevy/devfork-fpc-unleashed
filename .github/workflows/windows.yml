@@ -98,16 +98,16 @@ jobs:
     
     - name: Package artifacts
       run: |
-        powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'fpc-unleashed.zip'"
+        powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'fpc-windows.zip'"
         copy C:\fpc\bin\x86_64-win64\ppcx64.exe .
         copy C:\fpc\bin\x86_64-win64\ppcross386.exe .
       shell: cmd
       
-    - name: Upload fpc-unleashed.zip
+    - name: Upload fpc-windows.zip
       uses: actions/upload-artifact@v4
       with:
-        name: fpc-unleashed.zip
-        path: fpc-unleashed.zip
+        name: fpc-windows.zip
+        path: fpc-windows.zip
 
     - name: Upload ppcx64.exe
       uses: actions/upload-artifact@v4
@@ -134,16 +134,16 @@ jobs:
         "Build time: $ts" | Out-File -Append release-body.txt -Encoding UTF8
         "" | Out-File -Append release-body.txt -Encoding UTF8
         "Windows:" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Compiler (primary): `ppcx64.exe` (x86_64-win64)" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Cross-compiler: `ppcross386.exe` (i386-win32)" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Bundle (`fpc-windows.zip`) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Compiler (primary): ppcx64.exe (x86_64-win64)" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Cross-compiler: ppcross386.exe (i386-win32)" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Bundle (fpc-windows.zip) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
         "  - x86_64-win64" | Out-File -Append release-body.txt -Encoding UTF8
         "  - i386-win32" | Out-File -Append release-body.txt -Encoding UTF8
         "" | Out-File -Append release-body.txt -Encoding UTF8
         "Linux:" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Compiler (primary): `linux-ppcx64.zip` (x86_64-linux)" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Cross-compiler: `linux-ppcross386.zip` (i386-linux)" | Out-File -Append release-body.txt -Encoding UTF8
-        "- Bundle (`fpc-linux.zip`) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Compiler (primary): linux-ppcx64.zip (x86_64-linux)" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Cross-compiler: linux-ppcross386.zip (i386-linux)" | Out-File -Append release-body.txt -Encoding UTF8
+        "- Bundle (fpc-linux.zip) with RTL, units and compilers for:" | Out-File -Append release-body.txt -Encoding UTF8
         "  - x86_64-linux" | Out-File -Append release-body.txt -Encoding UTF8
         "  - i386-linux" | Out-File -Append release-body.txt -Encoding UTF8
         "" | Out-File -Append release-body.txt -Encoding UTF8
@@ -160,7 +160,7 @@ jobs:
     - name: Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: fpc-unleashed.zip, ppcx64.exe, ppcross386.exe
+        artifacts: fpc-windows.zip,ppcx64.exe,ppcross386.exe
         tag: ${{ env.TAG }}
         name: ${{ env.NAME }}
         bodyFile: release-body.txt
