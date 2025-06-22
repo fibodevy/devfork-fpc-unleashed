@@ -87,7 +87,7 @@ jobs:
 
     - name: Prepare release
       run: |
-        ts=$(TZ=Europe/Berlin date +"%Y-%m-%d %H:%M:%S Europe/Berlin")
+        ts=$(TZ=Europe/Berlin date +"%Y-%m-%d %H:%M:%S CEST")
         echo "TAG=nightly" >> $GITHUB_ENV
         echo "NAME=FPC Unleashed nightly" >> $GITHUB_ENV
         {
@@ -97,16 +97,16 @@ jobs:
           echo "Build time: $ts"
           echo
           echo "Windows:"
-          echo "- Compiler (primary): `ppcx64.exe` (x86_64-win64)"
-          echo "- Cross-compiler: `ppcross386.exe` (i386-win32)"
-          echo "- Bundle (`fpc-windows.zip`) with RTL, units and compilers for:"
+          echo "- Compiler (primary): ppcx64.exe (x86_64-win64)"
+          echo "- Cross-compiler: ppcross386.exe (i386-win32)"
+          echo "- Bundle (fpc-windows.zip) with RTL, units and compilers for:"
           echo "  - x86_64-win64"
           echo "  - i386-win32"
           echo
           echo "Linux:"
-          echo "- Compiler (primary): `linux-ppcx64.zip` (x86_64-linux)"
-          echo "- Cross-compiler: `linux-ppcross386.zip` (i386-linux)"
-          echo "- Bundle (`fpc-linux.zip`) with RTL, units and compilers for:"
+          echo "- Compiler (primary): linux-ppcx64.zip (x86_64-linux)"
+          echo "- Cross-compiler: linux-ppcross386.zip (i386-linux)"
+          echo "- Bundle (fpc-linux.zip) with RTL, units and compilers for:"
           echo "  - x86_64-linux"
           echo "  - i386-linux"
           echo
@@ -123,7 +123,7 @@ jobs:
     - name: Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: fpc-unleashed.zip,ppcx64,ppcross386
+        artifacts: fpc-linux.zip,linux-ppcx64.zip,linux-ppcross386.zip
         tag: ${{ env.TAG }}
         name: ${{ env.NAME }}
         bodyFile: release-body.txt
