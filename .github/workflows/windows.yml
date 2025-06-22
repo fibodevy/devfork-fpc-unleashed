@@ -124,7 +124,8 @@ jobs:
     
     - name: Prepare release
       run: |
-        $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
+        $tz = [System.TimeZoneInfo]::FindSystemTimeZoneById("Central European Standard Time")
+        $ts = [System.TimeZoneInfo]::ConvertTimeFromUtc((Get-Date).ToUniversalTime(), $tz).ToString("yyyy-MM-dd HH:mm:ss 'CEST'")
         echo "TAG=nightly" >> $env:GITHUB_ENV
         echo "NAME=FPC Unleashed nightly" >> $env:GITHUB_ENV
         
@@ -156,7 +157,6 @@ jobs:
         artifacts: fpc-unleashed.zip, ppcx64.exe, ppcross386.exe
         tag: ${{ env.TAG }}
         name: ${{ env.NAME }}
-        body: ${{ env.BODY }}
         bodyFile: release-body.txt
         prerelease: true
         allowUpdates: true
