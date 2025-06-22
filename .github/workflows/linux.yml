@@ -63,15 +63,15 @@ jobs:
       run: |
         mv compiler/ppcx64 fpc/bin
         mv compiler/ppcross386 fpc/bin
-        zip -r fpc-linux.zip fpc
+        zip -r linux-bundle.zip fpc
         zip -r linux-ppcx64.zip fpc/bin/ppcx64
         zip -r linux-ppcross386.zip fpc/bin/ppcross386
 
-    - name: Upload fpc-linux.zip
+    - name: Upload linux-bundle.zip
       uses: actions/upload-artifact@v4
       with:
-        name: fpc-linux.zip
-        path: fpc-linux.zip
+        name: linux-bundle.zip
+        path: linux-bundle.zip
 
     - name: Upload linux-ppcx64.zip
       uses: actions/upload-artifact@v4
@@ -106,7 +106,7 @@ jobs:
           echo "Linux:"
           echo "- Compiler (primary): linux-ppcx64.zip (x86_64-linux)"
           echo "- Cross-compiler: linux-ppcross386.zip (i386-linux)"
-          echo "- Bundle (fpc-linux.zip) with RTL, units and compilers for:"
+          echo "- Bundle (linux-bundle.zip) with RTL, units and compilers for:"
           echo "  - x86_64-linux"
           echo "  - i386-linux"
           echo
@@ -123,7 +123,7 @@ jobs:
     - name: Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: fpc-linux.zip,linux-ppcx64.zip,linux-ppcross386.zip
+        artifacts: linux-bundle.zip,linux-ppcx64.zip,linux-ppcross386.zip
         tag: ${{ env.TAG }}
         name: ${{ env.NAME }}
         bodyFile: release-body.txt
