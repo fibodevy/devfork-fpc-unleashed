@@ -63,6 +63,9 @@ jobs:
       run: |
         mv compiler/ppcx64 fpc/bin
         mv compiler/ppcross386 fpc/bin
+        mv fpc/lib/fpc/3.3.1/units fpc/units
+        rm -rf fpc/lib
+        rm -rf fpc/share
         zip -rq linux-bundle.zip fpc
         zip -j linux-ppcx64.zip fpc/bin/ppcx64
         zip -j linux-ppcross386.zip fpc/bin/ppcross386
