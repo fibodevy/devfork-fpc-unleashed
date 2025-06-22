@@ -99,7 +99,7 @@ jobs:
 
       - name: Prepare release body
         run: |
-          ts=$(TZ=Europe/Warsaw date +"%Y-%m-%d %H:%M:%S Europe/Warsaw")
+          ts=$(TZ=Europe/Berlin date +"%Y-%m-%d %H:%M:%S Europe/Berlin")
           echo "TAG=nightly" >> $GITHUB_ENV
           echo "NAME=FPC Unleashed nightly" >> $GITHUB_ENV
           {
