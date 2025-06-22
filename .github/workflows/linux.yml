@@ -42,19 +42,8 @@ jobs:
     if: needs.check-for-changes.outputs.should_build == 'true'
 
     steps:
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y make curl gcc g++ libx11-dev
-
-      - name: Download bootstrap FPC 3.2.2
-        run: |
-          curl -L -o fpc.tar https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
-          mkdir fpc-boot
-          tar -xf fpc.tar -C fpc-boot --strip-components=1
-
       - name: Install bootstrap compiler
-        run: |
-          cd fpc-boot
-          sudo make install PREFIX=/usr
+        run: apt-get install fpc-3.2.2
 
       - name: Checkout source
         uses: actions/checkout@v3
