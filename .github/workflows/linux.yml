@@ -51,41 +51,39 @@ jobs:
       - name: Build FPC x86_64 (native)
         run: |
           make distclean
-          make all CPU_TARGET=x86_64 PP=/usr/lib/fpc/3.2.2/ppcx64
-
-      - name: Build FPC x86_64 (utils)
-        run: make utils CPU_TARGET=x86_64 PP=compiler/ppcx64
-
+          make all CPU_TARGET=x86_64
+          
       - name: Install FPC x86_64
-        run: make install CPU_TARGET=x86_64 INSTALL_PREFIX=$PWD/fpc PP=compiler/ppcx64
-
+        run: make install CPU_TARGET=x86_64 INSTALL_PREFIX=$PWD/fpc
+        
       - name: Build i386 cross-compiler
-        run: |
-          make crossinstall OS_TARGET=linux CPU_TARGET=i386 INSTALL_PREFIX=$PWD/fpc PP=compiler/ppcx64 OPT="-dFPC_SOFT_FPUX80"
+        run: make crossinstall OS_TARGET=linux CPU_TARGET=i386 INSTALL_PREFIX=$PWD/fpc PP=$PWD/compiler/ppcx64
 
       - name: Package artifacts
         run: |
-          zip -r fpc-unleashed.zip fpc
-          cp fpc/bin/x86_64-linux/ppcx64 .
-          cp fpc/bin/i386-linux/ppcross386 .
+          mv compiler/ppcx64 fpc/bin
+          mv compiler/ppcross386 fpc/bin
+          zip -r fpc-linux.zip fpc
+          zip -r linux-ppcx64.zip fpc/bin/ppcx64
+          zip -r linux-ppcross386.zip fpc/bin/ppcross386
 
-      - name: Upload fpc-unleashed.zip
+      - name: Upload fpc-linux.zip
         uses: actions/upload-artifact@v4
         with:
-          name: fpc-unleashed.zip
-          path: fpc-unleashed.zip
+          name: fpc-linux.zip
+          path: fpc-linux.zip
 
-      - name: Upload ppcx64
+      - name: Upload linux-ppcx64.zip
         uses: actions/upload-artifact@v4
         with:
-          name: ppcx64
-          path: ppcx64
+          name: linux-ppcx64.zip
+          path: linux-ppcx64.zip
 
-      - name: Upload ppcross386
+      - name: Upload linux-ppcross386.zip
         uses: actions/upload-artifact@v4
         with:
-          name: ppcross386
-          path: ppcross386
+          name: linux-ppcross386.zip
+          path: linux-ppcross386.zip
 
       - name: Prepare release body
         run: |
@@ -98,10 +96,17 @@ jobs:
             echo "Generated from commit: $GITHUB_SHA"
             echo "Build time: $ts"
             echo
-            echo "Contents:"
-            echo "- Compiler (primary): ppcx64 (x86_64-linux)"
-            echo "- Cross-compiler: ppcross386 (i386-linux)"
-            echo "- RTL and units for:"
+            echo "Windows:"
+            echo "- Compiler (primary): `ppcx64.exe` (x86_64-win64)"
+            echo "- Cross-compiler: `ppcross386.exe` (i386-win32)"
+            echo "- Bundle (`fpc-windows.zip`) with RTL, units and compilers for:"
+            echo "  - x86_64-win64"
+            echo "  - i386-win32"
+            echo
+            echo "Linux:"
+            echo "- Compiler (primary): `linux-ppcx64.zip` (x86_64-linux)"
+            echo "- Cross-compiler: `linux-ppcross386.zip` (i386-linux)"
+            echo "- Bundle (`fpc-linux.zip`) with RTL, units and compilers for:"
             echo "  - x86_64-linux"
             echo "  - i386-linux"
             echo
