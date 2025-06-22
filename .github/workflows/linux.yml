@@ -85,7 +85,7 @@ jobs:
           name: linux-ppcross386.zip
           path: linux-ppcross386.zip
 
-      - name: Prepare release body
+      - name: Prepare release
         run: |
           ts=$(TZ=Europe/Berlin date +"%Y-%m-%d %H:%M:%S Europe/Berlin")
           echo "TAG=nightly" >> $GITHUB_ENV
