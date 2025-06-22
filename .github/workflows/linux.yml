@@ -63,9 +63,9 @@ jobs:
       run: |
         mv compiler/ppcx64 fpc/bin
         mv compiler/ppcross386 fpc/bin
-        zip -r linux-bundle.zip fpc
-        zip -r linux-ppcx64.zip fpc/bin/ppcx64
-        zip -r linux-ppcross386.zip fpc/bin/ppcross386
+        zip -rq linux-bundle.zip fpc
+        zip -j linux-ppcx64.zip fpc/bin/ppcx64
+        zip -j linux-ppcross386.zip fpc/bin/ppcross386
 
     - name: Upload linux-bundle.zip
       uses: actions/upload-artifact@v4
