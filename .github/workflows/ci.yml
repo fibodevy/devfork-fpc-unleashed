@@ -1,49 +1,255 @@
-name: CI
+name: CI Nightly
 
 on:
   workflow_dispatch:
 
 jobs:
-  check-and-dispatch:
+  check:
     runs-on: ubuntu-latest
     outputs:
       should_build: ${{ steps.check.outputs.should_build }}
     steps:
-      - name: Checkout HEAD only
+      - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
-      - name: Fetch nightly tag
+      - name: Fetch nightly
         run: git fetch origin refs/tags/nightly:refs/tags/nightly
 
-      - name: Check commit difference
+      - name: Check for changes
         id: check
         run: |
           if git rev-parse nightly >/dev/null 2>&1; then
-            NIGHTLY=$(git rev-list -n 1 nightly)
             HEAD=$(git rev-parse HEAD)
-            if [ "$NIGHTLY" != "$HEAD" ]; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
-            else
+            TAG=$(git rev-list -n 1 nightly)
+            if [ "$HEAD" = "$TAG" ]; then
               echo "should_build=false" >> $GITHUB_OUTPUT
+            else
+              echo "should_build=true" >> $GITHUB_OUTPUT
             fi
           else
             echo "should_build=true" >> $GITHUB_OUTPUT
 
-  dispatch:
-    needs: check-and-dispatch
-    if: needs.check-and-dispatch.outputs.should_build == 'true'
+  windows:
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
+    runs-on: windows-latest
+    
+    steps:
+    - name: Download bootstrap FPC 3.2.2
+      run: |
+        curl -L -o fpc.exe https://downloads.freepascal.org/fpc/dist/3.2.2/i386-win32/fpc-3.2.2.i386-win32.exe
+      shell: cmd
+    
+    - name: Verify bootstrap FPC hash
+      run: |
+        $expected = "7EC78B1790ECAC7685F440B17F9E03865BC09846B7C068A9270C4D37704B5AC8"
+        $actual = Get-FileHash -Algorithm SHA256 -Path "fpc.exe" | Select-Object -ExpandProperty Hash
+        Write-Host "Expected: $expected"
+        Write-Host "Actual:   $actual"
+        if ($actual -ne $expected) {
+          Write-Error "SHA256 mismatch! Aborting."
+          exit 1
+        }
+      shell: powershell
+    
+    - name: Install bootstrap FPC compiler
+      run: fpc.exe /VERYSILENT /DIR="C:\fpc322"
+      shell: cmd
+    
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Update PATH env
+      run: echo "C:\fpc322\bin\i386-win32" >> $env:GITHUB_PATH
+      shell: powershell
+    
+    - name: Build FPC x86_64 (native)
+      run: |
+        make distclean
+        make all OS_TARGET=win64 CPU_TARGET=x86_64 PP=C:\fpc322\bin\i386-win32\ppc386.exe
+      shell: cmd
+    
+    - name: Build FPC x86_64 (utils)
+      run: make utils OS_TARGET=win64 CPU_TARGET=x86_64 PP=%GITHUB_WORKSPACE%\compiler\ppcx64.exe
+      shell: cmd
+    
+    - name: Install FPC x86_64
+      run: make install OS_TARGET=win64 CPU_TARGET=x86_64 INSTALL_PREFIX=C:\fpc PP=compiler\ppcx64.exe
+      shell: cmd
+    
+    - name: Build i386 cross-compiler
+      run: |
+        make crossinstall OS_TARGET=win32 CPU_TARGET=i386 INSTALL_PREFIX=C:\fpc PP=C:\fpc\bin\x86_64-win64\ppcx64.exe OPT="-dFPC_SOFT_FPUX80"
+      shell: cmd
+
+    - name: Cleanup
+      run: Remove-Item -Path 'C:\fpc\bin\i386-win32' -Recurse -Force
+      shell: powershell
+    
+    - name: Package artifacts
+      run: |
+        powershell -Command "Compress-Archive -Path 'C:\fpc' -DestinationPath 'fpc-windows.zip'"
+        copy C:\fpc\bin\x86_64-win64\ppcx64.exe .
+        copy C:\fpc\bin\x86_64-win64\ppcross386.exe .
+      shell: cmd
+      
+    - name: Upload fpc-windows.zip
+      uses: actions/upload-artifact@v4
+      with:
+        name: fpc-windows.zip
+        path: fpc-windows.zip
+
+    - name: Upload ppcx64.exe
+      uses: actions/upload-artifact@v4
+      with:
+        name: ppcx64.exe
+        path: ppcx64.exe
+
+    - name: Upload ppcross386.exe
+      uses: actions/upload-artifact@v4
+      with:
+        name: ppcross386.exe
+        path: ppcross386.exe
+
+  linux:
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y make curl gcc g++ libx11-dev
+
+      - name: Download bootstrap FPC 3.2.2
+        run: |
+          curl -L -o fpc.tar https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
+          mkdir fpc-boot
+          tar -xf fpc.tar -C fpc-boot --strip-components=1
+
+      - name: Install bootstrap compiler
+        run: |
+          cd fpc-boot
+          sudo make install PREFIX=/usr
+
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Build FPC x86_64 (native)
+        run: |
+          make distclean
+          make all CPU_TARGET=x86_64 PP=/usr/lib/fpc/3.2.2/ppcx64
+
+      - name: Build FPC x86_64 (utils)
+        run: make utils CPU_TARGET=x86_64 PP=compiler/ppcx64
+
+      - name: Install FPC x86_64
+        run: make install CPU_TARGET=x86_64 INSTALL_PREFIX=$PWD/fpc PP=compiler/ppcx64
+
+      - name: Build i386 cross-compiler
+        run: make crossinstall OS_TARGET=linux CPU_TARGET=i386 INSTALL_PREFIX=$PWD/fpc PP=compiler/ppcx64 OPT="-dFPC_SOFT_FPUX80"
+
+      - name: Package artifacts
+        run: |
+          zip -r fpc-linux.zip fpc
+          cp fpc/bin/x86_64-linux/ppcx64 .
+          cp fpc/bin/i386-linux/ppcross386 .
+
+      - name: Upload fpc-linux.zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: fpc-linux.zip
+          path: fpc-linux.zip
+
+      - name: Upload ppcx64
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppcx64
+          path: ppcx64
+
+      - name: Upload ppcross386
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppcross386
+          path: ppcross386
+
+  release:
+    needs: [windows, linux]
     runs-on: ubuntu-latest
     steps:
-      - name: Dispatch Windows
-        uses: benc-uk/workflow-dispatch@v1
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
         with:
-          workflow: windows.yml
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          name: fpc-windows.zip
 
-      - name: Dispatch Linux
-        uses: benc-uk/workflow-dispatch@v1
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
         with:
-          workflow: linux.yml
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          name: fpc-linux.zip
+
+      - name: Download Windows binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: ppcx64.exe
+        continue-on-error: true
+
+      - name: Download Windows binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: ppcross386.exe
+        continue-on-error: true
+
+      - name: Download Linux binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: ppcx64
+        continue-on-error: true
+
+      - name: Download Linux binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: ppcross386
+        continue-on-error: true
+
+      - name: Prepare release
+        run: |
+          echo "TAG=nightly" >> $GITHUB_ENV
+          echo "NAME=FPC Unleashed nightly" >> $GITHUB_ENV
+          {
+            echo "FPC Unleashed nightly build"
+            echo
+            echo "Generated from commit: $GITHUB_SHA"
+            echo "Build time: $(TZ=Europe/Berlin date '+%Y-%m-%d %H:%M:%S Europe/Berlin')"
+            echo
+            echo "Contents:"
+            echo "- fpc-windows.zip"
+            echo "- ppcx64.exe"
+            echo "- ppcross386.exe"
+            echo "- fpc-linux.zip"
+            echo "- ppcx64"
+            echo "- ppcross386"
+          } > release-body.txt
+
+      - name: Update tag
+        uses: richardsimko/update-tag@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: |
+            fpc-windows.zip
+            ppcx64.exe
+            ppcross386.exe
+            fpc-linux.zip
+            ppcx64
+            ppcross386
+          tag: ${{ env.TAG }}
+          name: ${{ env.NAME }}
+          bodyFile: release-body.txt
+          prerelease: true
+          allowUpdates: true
