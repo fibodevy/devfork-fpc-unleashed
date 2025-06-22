@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 1
 
       - name: Fetch 'nightly' tag only
-        run: git fetch origin refs/tags/nightly:refs/tags/nightly
+        run: git fetch origin refs/tags/nightly:refs/tags/nightly || true
 
       - name: Check for changes since nightly
         id: check
