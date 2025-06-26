@@ -28,7 +28,9 @@ jobs:
         sudo ln -s /usr/bin/i686-linux-gnu-ld /usr/local/bin/i386-linux-ld
       
     - name: Install bootstrap compiler
-      run: sudo apt-get install fpc-3.2.2
+      run: |
+        sudo apt-get update
+        sudo apt-get install fpc-3.2.2
         
     - name: Check bootstrap compiler version
       run: fpc -iVTOTP
@@ -86,7 +88,9 @@ jobs:
         fi
         
     - name: Install bootstrap compiler
-      run: sudo apt-get install fpc-3.2.2
+      run: |
+        sudo apt-get update
+        sudo apt-get install fpc-3.2.2
 
     - name: Check bootstrap compiler version
       run: fpc -iVTOTP
@@ -144,7 +148,9 @@ jobs:
         fi
         
     - name: Install bootstrap compiler
-      run: sudo apt-get install fpc-3.2.2
+      run: |
+        sudo apt-get update
+        sudo apt-get install fpc-3.2.2
         
     - name: Check bootstrap compiler version
       run: fpc -iVTOTP
@@ -202,7 +208,9 @@ jobs:
         fi
         
     - name: Install bootstrap compiler
-      run: sudo apt-get install fpc-3.2.2
+      run: |
+        sudo apt-get update
+        sudo apt-get install fpc-3.2.2
 
     - name: Check bootstrap compiler version
       run: fpc -iVTOTP
