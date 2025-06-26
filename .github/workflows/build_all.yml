@@ -7,7 +7,9 @@ on:
 jobs:
   build-linux32:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      
     steps:
     - name: Detect CI platform
       run: |
@@ -74,7 +76,9 @@ jobs:
 
   build-linux64:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      
     steps:
     - name: Detect CI platform
       run: |
@@ -135,7 +139,9 @@ jobs:
 
   build-win32:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      
     steps:
     - name: Detect CI platform
       run: |
@@ -196,7 +202,9 @@ jobs:
 
   build-win64:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      
     steps:
     - name: Detect CI platform
       run: |
