@@ -1,0 +1,384 @@
+name: Build All
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build-linux32:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Detect CI platform
+      run: |
+        if [[ "$GITHUB_SERVER_URL" == *"github"* ]]; then
+          echo "CI_PLATFORM=github" >> $GITHUB_ENV
+          echo "Detected platform: github"
+        else
+          echo "CI_PLATFORM=gitea" >> $GITHUB_ENV
+          echo "Detected platform: gitea"
+        fi
+
+    - name: Install necessary utils
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-i686-linux-gnu
+        sudo ln -s /usr/bin/i686-linux-gnu-ld /usr/local/bin/i386-linux-ld
+      
+    - name: Install bootstrap compiler
+      run: |
+        wget --tries=3 --timeout=10 https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
+        echo "5ADAC308A5534B6A76446D8311FC340747CBB7EDEAACFE6B651493FF3FE31E83 fpc-3.2.2.x86_64-linux.tar" | sha256sum -c -
+        tar -xf fpc-3.2.2.x86_64-linux.tar
+        cd fpc-3.2.2.x86_64-linux
+        echo "/usr/local" | ./install.sh
+      
+    - name: Check bootstrap compiler version
+      run: fpc -iVTOTP
+    
+    - name: Checkout source
+      uses: actions/checkout@v3
+      
+    - name: Build FPC
+      run: |
+        make distclean
+        make all OS_TARGET=linux CPU_TARGET=i386
+        make install OS_TARGET=linux CPU_TARGET=i386 INSTALL_PREFIX=$PWD/fpc
+
+    - name: Package artifacts
+      run: |
+        mv compiler/ppc386 fpc/bin
+        mv fpc/lib/fpc/3.3.1/units fpc/units
+        rm -rf fpc/lib
+        rm -rf fpc/share
+        zip -j linux32-ppc386.zip fpc/bin/ppc386
+        zip -rq linux32-bundle.zip fpc
+
+    - name: Upload artifacts (Github)
+      if: ${{ env.CI_PLATFORM == 'github' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux32
+        path: |
+          linux32-ppc386.zip
+          linux32-bundle.zip
+
+    - name: Upload artifacts (Gitea)
+      if: ${{ env.CI_PLATFORM == 'gitea' }}
+      uses: 'christopherhx/gitea-upload-artifact@v4'
+      with:
+        name: linux32
+        path: |
+          linux32-ppc386.zip
+          linux32-bundle.zip
+
+  build-linux64:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Detect CI platform
+      run: |
+        if [[ "$GITHUB_SERVER_URL" == *"github"* ]]; then
+          echo "CI_PLATFORM=github" >> $GITHUB_ENV
+          echo "Detected platform: github"
+        else
+          echo "CI_PLATFORM=gitea" >> $GITHUB_ENV
+          echo "Detected platform: gitea"
+        fi
+        
+    - name: Install bootstrap compiler
+      run: |
+        wget --tries=3 --timeout=10 https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
+        echo "5ADAC308A5534B6A76446D8311FC340747CBB7EDEAACFE6B651493FF3FE31E83 fpc-3.2.2.x86_64-linux.tar" | sha256sum -c -
+        tar -xf fpc-3.2.2.x86_64-linux.tar
+        cd fpc-3.2.2.x86_64-linux
+        echo "/usr/local" | ./install.sh
+
+    - name: Check bootstrap compiler version
+      run: fpc -iVTOTP
+
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Build FPC
+      run: |
+        make distclean
+        make all OS_TARGET=linux CPU_TARGET=x86_64
+        make install OS_TARGET=linux CPU_TARGET=x86_64 INSTALL_PREFIX=$PWD/fpc
+
+    - name: Package artifacts
+      run: |
+        mv compiler/ppcx64 fpc/bin
+        mv fpc/lib/fpc/3.3.1/units fpc/units
+        rm -rf fpc/lib
+        rm -rf fpc/share
+        zip -j linux64-ppc386.zip fpc/bin/ppcx64
+        zip -rq linux64-bundle.zip fpc
+
+    - name: Upload artifacts (Github)
+      if: ${{ env.CI_PLATFORM == 'github' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux64
+        path: |
+          linux64-ppcx64.zip
+          linux64-bundle.zip
+
+    - name: Upload artifacts (Gitea)
+      if: ${{ env.CI_PLATFORM == 'gitea' }}
+      uses: 'christopherhx/gitea-upload-artifact@v4'
+      with:
+        name: linux64
+        path: |
+          linux64-ppcx64.zip
+          linux64-bundle.zip
+
+  build-win32:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Detect CI platform
+      run: |
+        if [[ "$GITHUB_SERVER_URL" == *"github"* ]]; then
+          echo "CI_PLATFORM=github" >> $GITHUB_ENV
+          echo "Detected platform: github"
+        else
+          echo "CI_PLATFORM=gitea" >> $GITHUB_ENV
+          echo "Detected platform: gitea"
+        fi
+        
+    - name: Install bootstrap compiler
+      run: |
+        wget --tries=3 --timeout=10 https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
+        echo "5ADAC308A5534B6A76446D8311FC340747CBB7EDEAACFE6B651493FF3FE31E83 fpc-3.2.2.x86_64-linux.tar" | sha256sum -c -
+        tar -xf fpc-3.2.2.x86_64-linux.tar
+        cd fpc-3.2.2.x86_64-linux
+        echo "/usr/local" | ./install.sh
+
+    - name: Check bootstrap compiler version
+      run: fpc -iVTOTP
+
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Build FPC
+      run: |
+        make distclean
+        make all OS_TARGET=win32 CPU_TARGET=i386
+        make install OS_TARGET=win32 CPU_TARGET=i386 INSTALL_PREFIX=$PWD/fpc
+
+    - name: Package artifacts
+      run: |
+        mv compiler/ppc386.exe fpc/bin
+        mv fpc/lib/fpc/3.3.1/units fpc/units
+        rm -rf fpc/lib
+        rm -rf fpc/share
+        zip -j win32-ppc386.zip fpc/bin/ppc386.exe
+        zip -rq win32-bundle.zip fpc
+
+    - name: Upload artifacts (Github)
+      if: ${{ env.CI_PLATFORM == 'github' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: win32
+        path: |
+          win32-ppc386.zip
+          win32-bundle.zip
+
+    - name: Upload artifacts (Gitea)
+      if: ${{ env.CI_PLATFORM == 'gitea' }}
+      uses: 'christopherhx/gitea-upload-artifact@v4'
+      with:
+        name: win32
+        path: |
+          win32-ppc386.zip
+          win32-bundle.zip
+
+  build-win64:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Detect CI platform
+      run: |
+        if [[ "$GITHUB_SERVER_URL" == *"github"* ]]; then
+          echo "CI_PLATFORM=github" >> $GITHUB_ENV
+          echo "Detected platform: github"
+        else
+          echo "CI_PLATFORM=gitea" >> $GITHUB_ENV
+          echo "Detected platform: gitea"
+        fi
+        
+    - name: Install bootstrap compiler
+      run: |
+        wget --tries=3 --timeout=10 https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
+        echo "5ADAC308A5534B6A76446D8311FC340747CBB7EDEAACFE6B651493FF3FE31E83 fpc-3.2.2.x86_64-linux.tar" | sha256sum -c -
+        tar -xf fpc-3.2.2.x86_64-linux.tar
+        cd fpc-3.2.2.x86_64-linux
+        echo "/usr/local" | ./install.sh
+
+    - name: Check bootstrap compiler version
+      run: fpc -iVTOTP
+
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Build FPC
+      run: |
+        make distclean
+        make all OS_TARGET=win64 CPU_TARGET=x86_64
+        make install OS_TARGET=win64 CPU_TARGET=x86_64 INSTALL_PREFIX=$PWD/fpc
+
+    - name: Package artifacts
+      run: |
+        mv compiler/ppcx64.exe fpc/bin
+        mv fpc/lib/fpc/3.3.1/units fpc/units
+        rm -rf fpc/lib
+        rm -rf fpc/share
+        zip -j win64-ppcx64.zip fpc/bin/ppcx64.exe
+        zip -rq win64-bundle.zip fpc
+
+    - name: Upload artifacts (Github)
+      if: ${{ env.CI_PLATFORM == 'github' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: win64
+        path: |
+          win64-ppcx64.zip
+          win64-bundle.zip
+
+    - name: Upload artifacts (Gitea)
+      if: ${{ env.CI_PLATFORM == 'gitea' }}
+      uses: 'christopherhx/gitea-upload-artifact@v4'
+      with:
+        name: win64
+        path: |
+          win64-ppcx64.zip
+          win64-bundle.zip
+          
+  release-github:
+    runs-on: ubuntu-latest
+    needs: [build-linux32, build-linux64, build-windows32, build-windows64]
+    if: ${{ contains(env.GITHUB_SERVER_URL, 'github') }}
+    
+    steps:
+    - name: Download Linux32 artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: linux32
+        path: .
+
+    - name: Download Linux64 artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: linux64
+        path: .
+        
+    - name: Download Win32 artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: win32
+        path: .
+
+    - name: Download Win64 artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: win64
+        path: .
+        
+    - name: Update tag
+      uses: richardsimko/update-tag@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: nightly
+        
+    - name: Prepare release
+      run: |
+        ts=$(TZ=Europe/Berlin date +"%Y-%m-%d %H:%M:%S CEST")
+        echo "TAG=nightly" >> $GITHUB_ENV
+        echo "NAME=FPC Unleashed nightly" >> $GITHUB_ENV
+        {
+          echo "FPC Unleashed nightly build"
+          echo
+          echo "Generated from commit: $GITHUB_SHA"
+          echo "Build time: $ts"
+        } > release.txt
+    
+    - name: Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: linux32-ppc386.zip,linux32-bundle.zip,linux64-ppcx64.zip,linux64-bundle.zip,win32-ppc386.zip,win32-bundle.zip,win64-ppcx64.zip,win64-bundle.zip
+        tag: ${{ env.TAG }}
+        name: ${{ env.NAME }}
+        bodyFile: release.txt
+        prerelease: true
+        allowUpdates: true
+  
+  release-gitea:
+    runs-on: ubuntu-latest
+    needs: [build-linux32, build-linux64, build-windows32, build-windows64]
+    if: ${{ !contains(env.GITHUB_SERVER_URL, 'github') }}
+    
+    steps:
+    - name: Download Linux32 artifacts
+      uses: 'christopherhx/gitea-download-artifact@v4'
+      with:
+        name: linux32
+        path: .
+
+    - name: Download Linux64 artifacts
+      uses: 'christopherhx/gitea-download-artifact@v4'
+      with:
+        name: linux64
+        path: .
+
+    - name: Download Win32 artifacts
+      uses: 'christopherhx/gitea-download-artifact@v4'
+      with:
+        name: win32
+        path: .
+
+    - name: Download Win64 artifacts
+      uses: 'christopherhx/gitea-download-artifact@v4'
+      with:
+        name: win64
+        path: .
+    
+    - name: Update tag
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git tag -d nightly || true
+        git tag -f nightly HEAD
+        git push origin -f refs/tags/nightly
+
+    - name: Prepare release
+      run: |
+        ts=$(TZ=Europe/Berlin date +"%Y-%m-%d %H:%M:%S CEST")
+        echo "TAG=nightly" >> $GITHUB_ENV
+        echo "NAME=FPC Unleashed nightly" >> $GITHUB_ENV
+        {
+          echo "FPC Unleashed nightly build"
+          echo
+          echo "Generated from commit: $GITHUB_SHA"
+          echo "Build time: $ts"
+        } > release.txt
+
+    - name: Release
+      uses: akkuman/gitea-release-action@v1
+      with:
+        files: |
+          linux32-ppc386.zip
+          linux32-bundle.zip
+          linux64-ppcx64.zip
+          linux64-bundle.zip
+          win32-ppc386.zip
+          win32-bundle.zip
+          win64-ppcx64.zip
+          win64-bundle.zip
+        tag_name: ${{ env.TAG }}
+        target_commitish: $GITHUB_SHA
+        name: ${{ env.NAME }}
+        body_path: release.txt
+        prerelease: true
+        
