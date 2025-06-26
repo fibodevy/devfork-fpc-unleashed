@@ -258,7 +258,7 @@ jobs:
   release-github:
     runs-on: ubuntu-latest
     needs: [build-linux32, build-linux64, build-windows32, build-windows64]
-    if: ${{ contains(env.github.server_url, 'github') }}
+    if: ${{ contains(github.server_url, 'github') }}
     
     steps:
     - name: Download Linux32 artifacts
