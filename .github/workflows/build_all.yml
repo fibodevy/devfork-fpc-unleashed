@@ -29,12 +29,12 @@ jobs:
       
     - name: Install bootstrap compiler
       run: |
+        sudo su
         wget --tries=3 --timeout=10 https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar
         echo "5ADAC308A5534B6A76446D8311FC340747CBB7EDEAACFE6B651493FF3FE31E83 fpc-3.2.2.x86_64-linux.tar" | sha256sum -c -
         tar -xf fpc-3.2.2.x86_64-linux.tar
         cd fpc-3.2.2.x86_64-linux
-        echo "$PWD/fpc-install" | ./install.sh
-        echo "$PWD/fpc-install/bin" >> $GITHUB_PATH
+        echo "/usr/local" | ./install.sh
         
     - name: Check bootstrap compiler version
       run: fpc -iVTOTP
