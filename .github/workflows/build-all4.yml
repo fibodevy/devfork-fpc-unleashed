@@ -377,6 +377,9 @@ jobs:
       with:
         name: win64
         path: .
+        
+    - name: Checkout source
+      uses: actions/checkout@v3
     
     - name: Update tag
       run: |
