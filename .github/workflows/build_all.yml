@@ -110,7 +110,7 @@ jobs:
         mv fpc/lib/fpc/3.3.1/units fpc/units
         rm -rf fpc/lib
         rm -rf fpc/share
-        zip -j linux64-ppc386.zip fpc/bin/ppcx64
+        zip -j linux64-ppcx64.zip fpc/bin/ppcx64
         zip -rq linux64-bundle.zip fpc
 
     - name: Upload artifacts (Github)
