@@ -50,7 +50,7 @@ jobs:
     if: needs.check-for-changes.outputs.should_build == 'true'
     permissions:
       contents: write
-      
+
     steps:
     - name: Detect CI platform
       run: |
@@ -342,6 +342,9 @@ jobs:
     if: ${{ contains(github.server_url, 'github') }}
     
     steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+      
     - name: Download Linux32 artifacts
       uses: actions/download-artifact@v4
       with:
@@ -401,6 +404,11 @@ jobs:
     if: ${{ !contains(github.server_url, 'github') }}
     
     steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+    
+    - run: ls -lh
+
     - name: Download Linux32 artifacts
       uses: 'christopherhx/gitea-download-artifact@v4'
       with:
@@ -424,10 +432,9 @@ jobs:
       with:
         name: win64
         path: .
-        
-    - name: Checkout source
-      uses: actions/checkout@v3
     
+    - run: ls -lh
+
     - name: Update tag
       run: |
         git config user.name "github-actions"
@@ -435,6 +442,8 @@ jobs:
         git tag -d nightly || true
         git tag -f nightly HEAD
         git push origin -f refs/tags/nightly
+
+    - run: ls -lh
 
     - name: Prepare release
       run: |
@@ -447,6 +456,8 @@ jobs:
           echo "Generated from commit: $GITHUB_SHA"
           echo "Build time: $ts"
         } > release.txt
+
+    - run: ls -lh
 
     - name: Release
       uses: akkuman/gitea-release-action@v1
@@ -461,7 +472,7 @@ jobs:
           win64-ppcx64.zip
           win64-bundle.zip
         tag_name: ${{ env.TAG }}
-        target_commitish: $GITHUB_SHA
+        target_commitish: ${{ $GITHUB_SHA }}
         name: ${{ env.NAME }}
         body_path: release.txt
         prerelease: true
