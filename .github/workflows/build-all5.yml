@@ -472,7 +472,7 @@ jobs:
           win64-ppcx64.zip
           win64-bundle.zip
         tag_name: ${{ env.TAG }}
-        target_commitish: ${{ $GITHUB_SHA }}
+        target_commitish: $GITHUB_SHA
         name: ${{ env.NAME }}
         body_path: release.txt
         prerelease: true
