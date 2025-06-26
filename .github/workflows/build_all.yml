@@ -257,7 +257,7 @@ jobs:
           
   release-github:
     runs-on: ubuntu-latest
-    needs: [build-linux32, build-linux64, build-windows32, build-windows64]
+    needs: [build-linux32, build-linux64, build-win32, build-win64]
     if: ${{ contains(github.server_url, 'github') }}
     
     steps:
@@ -316,7 +316,7 @@ jobs:
   
   release-gitea:
     runs-on: ubuntu-latest
-    needs: [build-linux32, build-linux64, build-windows32, build-windows64]
+    needs: [build-linux32, build-linux64, build-win32, build-win64]
     if: ${{ !contains(github.server_url, 'github') }}
     
     steps:
